@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.laoxu.java.authman.mapper.SysUserMapper">
+    <!-- 查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.laoxu.java.authman.model.SysUser">
+        <id     property="id" 		    column="id" />
+        <result property="username" 	column="username" />
+        <result property="password" 	column="password" />
+        <result property="truename" 	column="truename" />
+        <result property="email"    	column="email" />
+        <result property="phone"    	column="phone" />
+        <result property="deptId" 		column="dept_id" />
+        <result property="deptName"    column="dept_name" />
+        <result property="createTime"  column="create_time" />
+        <result property="createUser"  column="create_user" />
+        <result property="updateTime"  column="update_time" />
+        <result property="updateUser"  column="update_user" />
+        <association property="role" column="id" javaType="com.laoxu.java.authman.model.SysRole">
+            <id property="id" column="role_id"/>
+            <result property="roleName" column="role_name"/>
+            <result property="roleCode" column="role_code"/>
+        </association>
+    </resultMap>
+
+    <select id="selectUserList" resultMap="BaseResultMap">
+        SELECT u.id,
+        u.username,
+        u.truename,
+        u.password,
+        u.email,
+        u.phone,
+        u.create_time,
+        u.create_user,
+        u.update_time,
+        u.update_user,
+        u.dept_id,
+        r.id as role_id,
+        r.role_name,
+        r.role_code,
+        b.dept_name
+        FROM sys_user u LEFT JOIN sys_role_user ru ON u.id = ru.user_id
+        LEFT JOIN sys_role r ON ru.role_id = r.id
+        LEFT JOIN sys_dept b on u.dept_id = b.id
+        <where>
+            <if test="deptId != null">
+            and u.dept_id in (select id from sys_dept where pids like '%${deptId},%' or id=#{deptId})
+            </if>
+            <if test="name != null and name != ''">
+                and (u.username LIKE CONCAT('%',#{name},'%' ) OR u.truename LIKE CONCAT('%',#{name},'%'))
+            </if>
+            and (r.role_code != 'admin' or r.role_code is null)
+        </where>
+    </select>
+
+    <select id="selectUserRole" resultMap="BaseResultMap" parameterType="map">
+        SELECT u.id,
+        u.username,
+        u.password,
+        u.truename,
+        u.email,
+        u.phone,
+        u.dept_id,
+        u.create_time,
+        u.update_time,
+        u.create_user,
+        u.update_user,
+        r.id as role_id,
+        r.role_name,
+        r.role_code,
+        r.create_time,
+        r.update_time
+        FROM sys_user u
+        LEFT JOIN sys_role_user ru ON u.id = ru.user_id
+        LEFT JOIN sys_role r ON ru.role_id = r.id
+        <where>
+            <if test="userId != null and userId != ''">
+                u.id=#{userId}
+            </if>
+            <if test="username != null and username != ''">
+                u.username=#{username}
+            </if>
+        </where>
+    </select>
+
+    <select id="selectRoleListByUserId" parameterType="int" resultType="com.laoxu.java.authman.model.SysRole">
+      SELECT t1.id,
+       t1.role_name,
+       t1.role_code,
+	     CASE WHEN t2.id IS NULL THEN FALSE ELSE TRUE END AS checked
+        from sys_role t1 left join sys_role_user t2
+        on t1.id = t2.role_id
+        and t2.user_id = #{userId}
+    </select>
+</mapper>

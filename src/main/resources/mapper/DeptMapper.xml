@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.laoxu.java.authman.mapper.SysDeptMapper">
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.laoxu.java.authman.model.SysDept">
+        <id column="id" property="id" />
+        <result property="pid" column="pid"/>
+        <result property="pids" column="pids" />
+        <result property="deptName" column="dept_name"/>
+        <result property="deptCode" column="dept_code" />
+        <result property="createTime"  column="create_time" />
+        <result property="createUser"  column="create_user" />
+        <result property="updateTime"  column="update_time" />
+        <result property="updateUser"  column="update_user" />
+        <result property="pname" column="pname" />
+    </resultMap>
+
+    <select id="selectDeptsPage" resultMap="BaseResultMap" >
+		select t.id,t.pid,t.pids,t.dept_name,t.dept_code,t.remark,p.dept_name as pname
+		from sys_dept t left join sys_dept p on t.pid=p.id
+		${ew.sqlSegment}
+	</select>
+
+    <select id="selectDeptsById" resultMap="BaseResultMap">
+		select t.id,t.pid,t.pids,t.dept_name,t.dept_code,p.dept_name as pname
+		from sys_dept t left join sys_dept p on t.pid=p.id
+		where t.id = ${id}
+	</select>
+
+    <select id="selectDeptList" resultMap="BaseResultMap" useCache="false">
+        select t.id,t.pid,t.pids,t.dept_name,t.dept_code,p.dept_name as pname
+        from sys_dept t left join sys_dept p on t.pid=p.id
+        <if test="deptId != null">
+            <where>
+                and t.id in(select id from sys_dept where pids like '%,${deptId},%' or id=#{deptId})
+            </where>
+        </if>
+    </select>
+</mapper>

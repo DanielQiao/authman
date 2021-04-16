@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.laoxu.java.authman.mapper.SysMenuMapper">
+    <!--<cache type="org.mybatis.caches.ehcache.LoggingEhcache"/>-->
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.laoxu.java.authman.model.SysMenu">
+        <id     property="id" 				column="id" />
+        <result property="pid" 				column="pid" />
+        <result property="menuName" 	column="menu_name" />
+        <result property="menuCode" 	column="menu_code" />
+        <result property="menuType" 	column="menu_type" />
+        <result property="url"  	        column="url" />
+        <result property="icon" 			column="icon" />
+        <result property="outside"          column="is_outside"/>
+        <result property="create_time"     column="createTime" />
+        <result property="create_user"     column="createUser" />
+        <result property="update_time"     column="updateTime" />
+        <result property="update_user"     column="updateUser" />
+        <result property="parentName" 	    column="parent_name" />
+        <result property="last" 			column="last" />
+    </resultMap>
+
+    <select id="findAllByUserId" parameterType="int" resultMap="BaseResultMap" flushCache="true" useCache="true">
+		SELECT s.* FROM sys_menu s, sys_role_menu sr, sys_role r, sys_role_user ru
+		WHERE s.id = sr.menu_id
+		AND sr.role_id = r.id
+		AND r.id = ru.role_id
+		AND ru.user_id=#{userId}
+	</select>
+
+    <select id="findMenusByUserId" parameterType="int" resultMap="BaseResultMap" flushCache="true" useCache="true">
+		SELECT DISTINCT s.id, s.menu_code, s.menu_name, s.menu_type, s.url, s.icon, s.is_outside, s.pid, s.target
+		FROM sys_menu s, sys_role_menu sr, sys_role r, sys_role_user ru
+		WHERE s.id = sr.menu_id
+		AND sr.role_id = r.id
+		AND r.id = ru.role_id
+		AND s.menu_type != 2
+		AND ru.user_id=#{userId}
+	</select>
+
+    <select id="queryMenuList" parameterType="map" resultMap="BaseResultMap" flushCache="true" useCache="true">
+        SELECT t1.id,
+        t1.pid,
+        t1.menu_name,
+        t2.menu_name AS parentName,
+        t1.menu_code,
+        t1.menu_type,
+        t1.url,
+        t1.is_outside,
+        t1.create_time,
+        t1.update_time,
+        CASE WHEN t3.id IS NULL THEN FALSE ELSE TRUE END AS checked
+        FROM sys_menu t1 LEFT JOIN sys_menu t2 ON t1.pid = t2.id
+        LEFT JOIN sys_role_menu t3 on t1.id = t3. menu_id and  t3.role_id=#{roleId}
+        <where>
+            <!--<if test="isHide != null">
+                and t1.ihide=#{isHide}
+            </if>-->
+            <if test="type != null">
+                and t1.type=#{type}
+            </if>
+        </where>
+    </select>
+
+    <select id="selectMenuPage" resultMap="BaseResultMap">
+		SELECT t1.id,
+			t1.pid,
+			t1.menu_name,
+			t1.menu_code,
+			t1.menu_type,
+			t1.url,
+			t1.icon,
+            t1.is_outside,
+			t1.create_time,
+			t1.update_time,
+		 CASE WHEN
+		 	(SELECT count(id) FROM sys_menu t2 where t2.pid = t1.id)>0
+		 THEN
+		 	FALSE
+		 ELSE
+		 	TRUE
+		 END AS `last`
+		 FROM sys_menu t1
+        <where>
+            ${ew.sqlSegment}
+        </where>
+	</select>
+</mapper>

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.laoxu.java.authman.mapper.SysRoleMapper">
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.laoxu.java.authman.model.SysRole">
+        <id column="id" property="id" />
+        <result column="role_name" property="roleName" />
+        <result column="role_code" property="roleCode" />
+        <result column="create_time" property="createTime" />
+        <result column="update_time" property="updateTime" />
+        <collection property="userList" column="id" ofType="com.laoxu.java.authman.model.SysUser">
+            <id property="id" column="u_id"/>
+            <result property="username" column="username" />
+            <result property="truename" column="truename"/>
+            <result property="password" column="password"/>
+            <result property="createUser" column="u_create_user"/>
+            <result property="createTime" column="u_create_time"/>
+            <result property="updateTime" column="u_update_time"/>
+        </collection>
+    </resultMap>
+
+    <select id="selectRoleList" resultMap="BaseResultMap">
+        SELECT
+        a.id,a.role_name,a.role_code,a.create_time,a.update_time
+        FROM
+        sys_role a
+    </select>
+</mapper>
